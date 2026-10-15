@@ -1,0 +1,37 @@
+========================================
+TASKFLOW SERVICES CONTROL
+========================================
+
+--- START ALL SERVICES ---
+sudo systemctl start docker postgresql redis-server rabbitmq-server nginx prometheus prometheus-node-exporter grafana-server
+
+--- STOP ALL SERVICES ---
+sudo systemctl stop grafana-server prometheus prometheus-node-exporter nginx rabbitmq-server redis-server postgresql docker
+
+--- ENABLE AUTOMATIC START AT BOOT ---
+sudo systemctl enable docker postgresql redis-server rabbitmq-server nginx prometheus prometheus-node-exporter grafana-server
+
+--- DISABLE AUTOMATIC START AT BOOT ---
+sudo systemctl disable docker postgresql redis-server rabbitmq-server nginx prometheus prometheus-node-exporter grafana-server
+
+--- START ALL AND ENABLE AT BOOT ---
+sudo systemctl enable --now docker postgresql redis-server rabbitmq-server nginx prometheus prometheus-node-exporter grafana-server
+
+--- STOP ALL AND DISABLE AT BOOT ---
+sudo systemctl disable --now grafana-server prometheus prometheus-node-exporter nginx rabbitmq-server redis-server postgresql docker
+
+--- CHECK ALL SERVICE STATUSES ---
+systemctl is-active docker postgresql redis-server rabbitmq-server nginx prometheus prometheus-node-exporter grafana-server
+
+--- TEST REDIS ---
+redis-cli ping
+
+--- TEST POSTGRESQL ---
+pg_isready
+
+--- TEST RABBITMQ ---
+sudo rabbitmq-diagnostics ping
+
+========================================
+END
+========================================
