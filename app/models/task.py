@@ -34,3 +34,9 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: ErrorDetail
+
+class TaskListResponseVerify(BaseModel):
+    items: list[ResponseTaskVerify]
+    limit: int
+    offset: int
+    total: int
