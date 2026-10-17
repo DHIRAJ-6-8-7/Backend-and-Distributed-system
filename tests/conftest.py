@@ -1,6 +1,5 @@
 import os
 
-from click import clear
 import pytest
 from dotenv import load_dotenv
 from sqlalchemy import text
