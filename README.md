@@ -1,73 +1,248 @@
-# Backend and Distributed Systems
+# Taskflow — Backend & Distributed Systems
 
-A hands-on engineering project focused on backend development, networking, Linux, databases, automated testing, and distributed systems. This repository documents my practical learning journey through building and improving **Taskflow**, a task-management API that will evolve into a distributed task-processing platform.
+<p align="center">
+  **A hands-on backend engineering project evolving into a distributed task-processing platform.**
+</p>
 
-The goal is to develop strong foundations through implementation, testing, debugging, measurement, and progressively more advanced system design.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Redis-Cache-DC382D?logo=redis" alt="Redis">
+  <img src="https://img.shields.io/badge/SQLAlchemy-ORM-D71F00" alt="SQLAlchemy">
+  <img src="https://img.shields.io/badge/Alembic-Migrations-6BA81E" alt="Alembic">
+</p>
 
-## Current Progress
+---
 
-**Completed through Day 5: Backend Foundations and Automated API Testing**
+## 1. Project Overview
+
+**Taskflow** is a backend engineering project built to explore the principles, technologies and engineering practices behind modern backend and distributed systems.
+
+It begins as a PostgreSQL-backed task management API and progressively evolves toward a distributed task-processing platform.
+
+The project is developed through practical implementation, testing, debugging, performance analysis and system design rather than relying exclusively on theoretical exercises.
+
+### Primary objectives
+
+- Build maintainable REST APIs using FastAPI.
+- Understand HTTP, networking and client-server communication.
+- Design and interact with relational databases.
+- Implement database access using SQLAlchemy ORM.
+- Manage database schema changes using Alembic.
+- Improve application performance using Redis caching.
+- Introduce asynchronous processing using message queues.
+- Build reliable background workers.
+- Explore Linux, processes, networking and system-level behaviour.
+- Deploy and observe multi-service applications.
+- Understand distributed-system trade-offs, failures and consistency.
+
+## 2. Current Development Status
+
+<details>
+<summary><strong>Completed work — Days 1–11</strong></summary>
+
+### Backend and HTTP foundations
 
 - HTTP fundamentals and client-server communication.
-- A basic HTTP server implemented using Python sockets.
+- Basic HTTP server implemented using Python sockets.
 - REST API development using FastAPI.
 - Request validation and response schemas using Pydantic.
-- CRUD operations with PostgreSQL.
-- SQL queries and database-backed task management.
-- Query parameters for filtering, sorting, and pagination.
-- HTTP status codes and error handling.
-- Automated integration testing with pytest and FastAPI `TestClient`.
-- Database persistence checks and dedicated test-database configuration.
-- Test fixtures and test-data isolation.
+- CRUD operations and HTTP status codes.
+- Filtering, sorting and pagination.
+- Error handling and API testing.
 
-**Latest test result:** 17 passed, 0 failed, 3 warnings.
+### PostgreSQL and database engineering
 
-The warnings are deprecation notices from dependencies and model declarations; they are maintenance items rather than test failures.
+- PostgreSQL integration.
+- SQL queries and relational database fundamentals.
+- SQLAlchemy Core and ORM.
+- Declarative ORM models.
+- Session management and dependency injection.
+- Database connection pooling fundamentals.
+- Alembic migration workflow.
+- Schema upgrades and downgrades.
 
-## Technology Stack
+### Automated testing
 
-| Area | Technologies |
+- pytest and FastAPI `TestClient`.
+- Integration testing of API endpoints.
+- Database persistence verification.
+- Test fixtures and test database isolation.
+
+### Redis integration
+
+- Redis architecture and client-server communication.
+- Keys, expiration, TTL and data structures.
+- Redis CLI and persistence mechanisms.
+- Python integration using `redis-py`.
+- Cache-aside implementation.
+- GET-by-ID caching with a 300-second TTL.
+- Cache invalidation after PATCH, PUT and DELETE.
+- Redis failure handling and PostgreSQL fallback.
+- Redis outage and recovery verification.
+
+</details>
+
+**Current milestone:** Redis fundamentals and Taskflow caching completed (Day 11).
+
+The project is currently entering the message-queue and asynchronous-processing stage.
+
+> Development status reflects work implemented and verified in the project. Planned architecture components are not presented as completed features.
+
+## 3. Architecture
+
+### Current application architecture
+
+```text
+                   Client
+                     |
+                     v
+               FastAPI Application
+                     |
+           +---------+---------+
+           |                   |
+           v                   v
+      Redis Cache         PostgreSQL
+      Cache-aside         Source of Truth
+           |                   |
+           +---------+---------+
+                     |
+                     v
+                API Response
+```
+
+The application uses PostgreSQL as the authoritative data store and Redis as a complementary caching layer.
+
+### Target distributed architecture
+
+The long-term architecture is planned to evolve toward:
+
+```text
+                     Clients
+                        |
+                        v
+                  Nginx / Proxy
+                        |
+              +---------+---------+
+              |         |         |
+              v         v         v
+           FastAPI   FastAPI   FastAPI
+           Instance Instance Instance
+              |         |         |
+              +---------+---------+
+                        |
+          +-------------+-------------+
+          |             |             |
+          v             v             v
+       Redis        PostgreSQL     RabbitMQ
+       Cache        Persistent     Message
+                    Database       Broker
+                                      |
+                                +-----+-----+
+                                |           |
+                                v           v
+                             Worker 1    Worker 2
+                                |           |
+                                +-----+-----+
+                                      |
+                                      v
+                              Task Processing
+                                      |
+                                      v
+                               Results / Status
+
+                  Observability:
+                 Prometheus + Grafana
+```
+
+This is the target architecture, not a claim that every component is already implemented.
+
+## 4. Technology Stack
+
+| Category | Technology | Purpose |
+|---|---|---|
+| Language | Python | Application development |
+| API framework | FastAPI | REST API implementation |
+| Validation | Pydantic | Request and response validation |
+| Primary database | PostgreSQL | Persistent relational data |
+| Database toolkit | SQLAlchemy | SQL execution and ORM |
+| Migrations | Alembic | Database schema versioning |
+| Cache | Redis | In-memory caching |
+| Redis client | redis-py | Python–Redis communication |
+| Testing | pytest | Automated testing |
+| API testing | FastAPI TestClient, curl | Endpoint verification |
+| Server | Uvicorn | ASGI application server |
+| Environment | Linux / WSL | Development environment |
+| Version control | Git / GitHub | Source control |
+
+### Planned technologies
+
+| Technology | Planned purpose |
 |---|---|
-| Language | Python |
-| API framework | FastAPI |
-| Data validation | Pydantic |
-| Database | PostgreSQL |
-| Database access | SQLAlchemy |
-| Testing | pytest, FastAPI `TestClient` |
-| HTTP testing and debugging | curl |
-| Development environment | Linux, WSL, Python virtual environment |
-| Version control | Git and GitHub |
+| RabbitMQ | Message broker and asynchronous processing |
+| Docker | Application containerization |
+| Docker Compose | Multi-service development environment |
+| Nginx | Reverse proxy and load balancing |
+| Prometheus | Metrics collection |
+| Grafana | Monitoring and visualization |
+| k6 | Load and performance testing |
 
-Additional technologies, including Redis, RabbitMQ, Docker, Nginx, Prometheus, Grafana, and load-testing tools, will be incorporated as the project develops.
+## 5. Project Structure
 
-## Project Goals
+```text
+taskflow/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config.py
+│   ├── database.py
+│   ├── redis_client.py
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── task.py
+│   │   └── task_model.py
+│   │
+│   ├── routers/
+│   │
+│   └── services/
+│       ├── __init__.py
+│       └── cache_service.py
+│
+├── alembic/
+│   ├── versions/
+│   ├── env.py
+│   └── script.py.mako
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_database_config.py
+│   └── test_tasks.py
+│
+├── alembic.ini
+├── http_server.py
+├── requirements.txt
+├── .env                 # Local configuration; not committed
+├── .gitignore
+└── README.md
+```
 
-Taskflow is being developed incrementally toward a distributed task-processing architecture.
+The structure may evolve as the application grows. For example, routers and workers will receive more dedicated modules as their responsibilities expand.
 
-The planned system will eventually include:
-
-- A REST API for submitting and managing tasks.
-- PostgreSQL for persistent application data.
-- Redis for caching, rate limiting, and selected coordination tasks.
-- A message queue for asynchronous task processing.
-- Background workers with retry handling and idempotent processing.
-- Nginx as a reverse proxy and load balancer.
-- Docker Compose for local multi-service deployment.
-- Prometheus and Grafana for monitoring and observability.
-- Automated tests, performance benchmarks, and failure analysis.
-
-These are development goals, not claims that every component is already implemented.
-
-## Getting Started
+## 6. Getting Started
 
 ### Prerequisites
 
 - Python 3
 - Git
-- Linux, WSL, or another compatible development environment
-- PostgreSQL for the database-backed API
+- PostgreSQL
+- Redis
+- Linux, WSL or another compatible development environment
 
-### 1. Clone the repository
+### 6.1 Clone the repository
 
 ```bash
 git clone https://github.com/DHIRAJ-6-8-7/Backend-and-Distributed-system.git
@@ -75,7 +250,7 @@ git clone https://github.com/DHIRAJ-6-8-7/Backend-and-Distributed-system.git
 cd Backend-and-Distributed-system
 ```
 
-### 2. Create and activate a virtual environment
+### 6.2 Create a virtual environment
 
 ```bash
 python3 -m venv .venv
@@ -83,7 +258,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 6.3 Install dependencies
 
 ```bash
 python -m pip install --upgrade pip
@@ -91,67 +266,270 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 4. Configure the database
+### 6.4 Configure environment variables
 
-The database-backed application requires PostgreSQL and appropriate database credentials.
+Create a local `.env` file in the project root.
 
-Configure the required environment variables using the names expected by the application:
+Example:
 
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_NAME`
-- `DB_PASSWORD`
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_NAME=taskflow
 
-For local development, store these values in a local `.env` file if the application is configured to load it.
+REDIS_URL=redis://localhost:6379/0
+```
 
-**Security notes:**
+Use your own local credentials.
 
-- Never commit `.env` files or database credentials.
-- Ensure `.env` is covered by `.gitignore`.
-- Create and configure the development database before starting the database-backed API.
-- Automated tests should use a dedicated test database rather than the development database.
+**Security requirements:**
 
-The exact database initialization requirements depend on the SQL schema and setup scripts in the repository.
+- Never commit `.env`.
+- Never publish database credentials or secrets.
+- Ensure `.env` is listed in `.gitignore`.
+- Use a separate database for automated tests.
+- Do not expose Redis or PostgreSQL publicly without appropriate security configuration.
 
-## Run the API
+### 6.5 Start the services
 
-Activate the virtual environment and start the FastAPI application:
+Start PostgreSQL and Redis using your local service manager.
+
+For Ubuntu / WSL:
+
+```bash
+sudo service postgresql start
+sudo service redis-server start
+```
+
+Verify Redis:
+
+```bash
+redis-cli ping
+```
+
+Expected response:
+
+```text
+PONG
+```
+
+Verify PostgreSQL connectivity using your configured database credentials.
+
+### 6.6 Database migrations
+
+The project uses Alembic to manage schema changes.
+
+Inspect migration history:
+
+```bash
+alembic history
+```
+
+Check the current database revision:
+
+```bash
+alembic current
+```
+
+Apply available migrations:
+
+```bash
+alembic upgrade head
+```
+
+Create a migration after changing ORM models:
+
+```bash
+alembic revision --autogenerate -m "describe schema change"
+```
+
+Review generated migration files before applying them.
+
+**Important:** The existing baseline migration was stamped against an already-created database during development. A fresh database may require a proper initial schema migration or bootstrap procedure before it can use the current migration history. Do not assume that the existing migration history alone creates every original table from scratch.
+
+## 7. Running the Application
+
+Activate the virtual environment and run:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will normally be available at:
+Default local URLs:
 
-- Base URL: `http://127.0.0.1:8000`
-- Interactive Swagger documentation: `http://127.0.0.1:8000/docs`
-- ReDoc documentation: `http://127.0.0.1:8000/redoc`
+| Resource | URL |
+|---|---|
+| API base | http://127.0.0.1:8000 |
+| Swagger UI | http://127.0.0.1:8000/docs |
+| ReDoc | http://127.0.0.1:8000/redoc |
 
-The application requires its database configuration to be valid before database-backed endpoints can operate successfully.
+The application requires valid database configuration. Redis is used for caching, with the current GET cache path designed to fall back to PostgreSQL when Redis is unavailable.
 
-## API Overview
+## 8. API Reference
 
-The task API is organized under the `/api/v1/tasks` route.
+The task API is organized under:
 
-| Method | Endpoint | Purpose |
+```text
+/api/v1/tasks
+```
+
+### Available endpoints
+
+| Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/v1/tasks` | Create a task |
-| GET | `/api/v1/tasks` | Retrieve a task list |
+| GET | `/api/v1/tasks` | Retrieve tasks |
 | GET | `/api/v1/tasks/{task_id}` | Retrieve a task by ID |
-| PATCH | `/api/v1/tasks/{task_id}` | Update selected task fields |
-| PUT | `/api/v1/tasks/{task_id}` | Replace a task representation |
+| PATCH | `/api/v1/tasks/{task_id}` | Partially update a task |
+| PUT | `/api/v1/tasks/{task_id}` | Replace a task |
 | DELETE | `/api/v1/tasks/{task_id}` | Delete a task |
 
-The list endpoint supports the filtering, sorting, and pagination options implemented by the application.
+The list endpoint supports the implemented filtering, sorting and pagination options.
 
-Request validation is handled using Pydantic models, while the database layer uses SQLAlchemy to interact with PostgreSQL.
+Request validation and response serialization are handled through Pydantic models.
 
-For the exact request schemas and query parameters, consult the interactive API documentation at `/docs`.
+For exact request fields, query parameters and response schemas, use the interactive Swagger documentation at `/docs`.
 
-## Automated Testing
+### Example requests
 
-Automated tests are maintained in the `tests/` directory.
+Create a task:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/tasks" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Learn distributed systems",
+    "completed": false,
+    "age": 21
+  }'
+```
+
+Retrieve a task:
+
+```bash
+curl "http://127.0.0.1:8000/api/v1/tasks/1"
+```
+
+Partially update a task:
+
+```bash
+curl -X PATCH "http://127.0.0.1:8000/api/v1/tasks/1" \
+  -H "Content-Type: application/json" \
+  -d '{"completed": true}'
+```
+
+Delete a task:
+
+```bash
+curl -X DELETE "http://127.0.0.1:8000/api/v1/tasks/1"
+```
+
+The example task ID must exist for operations that require an existing task.
+
+## 9. Database Engineering
+
+### PostgreSQL
+
+PostgreSQL serves as the primary persistent data store.
+
+The current application uses SQLAlchemy ORM for database operations.
+
+Key concepts explored:
+
+- Relational database design.
+- SQL queries.
+- Declarative ORM models.
+- Session lifecycle.
+- Database dependency injection.
+- Connection pooling.
+- Database transactions.
+- Schema migration workflows.
+
+### SQLAlchemy
+
+The application separates ORM models from Pydantic request and response schemas.
+
+This distinction helps keep database representation separate from API contracts.
+
+### Alembic
+
+Alembic manages schema changes over time.
+
+Typical workflow:
+
+```text
+Modify ORM Model
+       |
+       v
+Generate Migration
+       |
+       v
+Review Migration
+       |
+       v
+Apply Migration
+       |
+       v
+Verify Database Schema
+```
+
+Useful commands:
+
+```bash
+alembic current
+alembic history
+alembic heads
+alembic revision --autogenerate -m "description"
+alembic upgrade head
+alembic downgrade -1
+alembic check
+```
+
+Generated migrations should always be reviewed before execution.
+
+## 10. Redis Caching
+
+Redis is integrated as a caching layer alongside PostgreSQL.
+
+### Cache-aside strategy
+
+The current GET-by-ID endpoint follows this flow:
+
+1. Check Redis for the requested task.
+2. If a cached value exists, return it.
+3. Otherwise, retrieve the task from PostgreSQL.
+4. Serialize the task response.
+5. Store the result in Redis with a 300-second TTL.
+6. Return the result.
+
+### Cache invalidation
+
+After successful database mutations:
+
+- PATCH invalidates the corresponding task key.
+- PUT invalidates the corresponding task key.
+- DELETE invalidates the corresponding task key.
+- POST creates a new task and does not normally require invalidating an existing detail key.
+
+Example key:
+
+```text
+task:42
+```
+
+### Failure handling
+
+The cache-read path handles Redis errors and falls back to PostgreSQL.
+
+This keeps basic task retrieval available when Redis is temporarily unavailable, provided PostgreSQL remains healthy.
+
+The current implementation is an educational cache-aside foundation. More advanced consistency, observability and coordination mechanisms will be developed later.
+
+## 11. Automated Testing
+
+The project uses pytest and FastAPI `TestClient`.
 
 Run the complete test suite:
 
@@ -159,13 +537,13 @@ Run the complete test suite:
 python -m pytest -v
 ```
 
-Run the task API tests:
+Run task API tests:
 
 ```bash
 python -m pytest -v tests/test_tasks.py
 ```
 
-Run the database configuration test:
+Run database configuration tests:
 
 ```bash
 python -m pytest -v tests/test_database_config.py
@@ -177,123 +555,153 @@ Run an individual test:
 python -m pytest -v tests/test_tasks.py::test_create_task
 ```
 
-### What the tests cover
+### Testing principles
 
-- Successful task creation.
-- Database persistence.
-- Request validation failures.
-- Missing required fields.
-- Invalid age values.
-- Retrieval by ID.
-- Nonexistent resources and invalid IDs.
-- Task listing and filtering.
-- Sorting and pagination.
-- Partial updates with PATCH.
-- Replacement updates with PUT.
-- Successful deletion and subsequent retrieval.
-- Database configuration and test-data isolation.
+- Verify HTTP status codes and response bodies.
+- Verify database persistence.
+- Test invalid and missing input.
+- Test nonexistent resources.
+- Verify filtering, sorting and pagination.
+- Verify partial and full updates.
+- Verify deletion behaviour.
+- Keep test data isolated.
+- Use a dedicated test database.
+- Avoid destructive test operations against development or production databases.
 
-### Test database safety
+### Redis verification
 
-The test configuration selects `taskflow_test` and checks the connected database before performing destructive cleanup.
+Check Redis:
 
-The fixture clears test task data before and after individual tests to help keep tests independent and repeatable.
-
-Never remove the database-name safety check or run destructive test cleanup against a development or production database.
-
-## Project Structure
-
-The following is a conceptual overview of the main project areas. Individual filenames may evolve as the architecture develops.
-
-```text
-taskflow/
-├── app/
-│   ├── main.py
-│   ├── database.py
-│   ├── models/
-│   ├── routers/
-│   └── services/
-├── tests/
-│   ├── conftest.py
-│   ├── test_database_config.py
-│   └── test_tasks.py
-├── test/
-├── http_server.py
-├── requirements.txt
-├── .gitignore
-└── README.md
+```bash
+redis-cli ping
 ```
 
-The `app/` directory contains the API and database-related implementation. The `tests/` directory contains automated tests and their shared fixtures.
+Inspect a task cache entry:
 
-The older `test/` directory and other listed paths should be retained in this overview only if they exist in the current repository.
+```bash
+redis-cli GET task:1
+```
 
-## Learning Roadmap
+Inspect its expiry:
+
+```bash
+redis-cli TTL task:1
+```
+
+Test Redis outage behaviour in a controlled local environment by temporarily stopping Redis and verifying that the GET endpoint can retrieve data from PostgreSQL.
+
+## 12. Development Roadmap
+
+The project follows a progressive learning and implementation roadmap.
 
 ### Phase 1 — Backend Foundations
 
-- [x] HTTP and client-server fundamentals
-- [x] Basic HTTP server using Python sockets
-- [x] FastAPI and REST API fundamentals
-- [x] Pydantic validation and response schemas
+- [x] HTTP fundamentals
+- [x] Python socket-based HTTP server
+- [x] FastAPI and REST API design
+- [x] Pydantic validation
 - [x] CRUD operations
-- [x] Filtering, sorting, and pagination
 - [x] PostgreSQL integration
-- [x] Database-backed API operations
-- [x] Automated API integration tests with pytest
-- [x] Test fixtures and test-database isolation
-- [ ] Cumulative review and practical assessment
+- [x] Filtering, sorting and pagination
+- [x] Automated API testing
 
-### Phase 2 — Database Engineering
+### Phase 2 — Database Engineering and Caching
 
-- [ ] Database schema design and normalization
-- [ ] Database migrations
-- [ ] Transactions and isolation levels
-- [ ] Indexes and query-plan analysis
-- [ ] Connection pooling
-- [ ] Database concurrency and consistency
+- [x] SQL and relational database fundamentals
+- [x] SQLAlchemy ORM
+- [x] Session management and dependency injection
+- [x] Database connection pooling fundamentals
+- [x] Alembic migration workflow
+- [x] Redis fundamentals
+- [x] Python Redis integration
+- [x] Cache-aside implementation
+- [x] Cache invalidation
+- [x] Redis outage fallback verification
+- [ ] Advanced transaction and isolation analysis
+- [ ] Indexing and query-plan optimisation
+- [ ] Cache metrics and observability
 
-### Phase 3 — Backend Reliability
+### Phase 3 — Asynchronous Processing
 
-- [ ] Redis caching and rate limiting
-- [ ] Background task processing
-- [ ] Message queues and asynchronous workers
-- [ ] Retries, timeouts, and idempotency
-- [ ] Structured logging and error observability
+- [ ] RabbitMQ architecture
+- [ ] Message producers and consumers
+- [ ] Exchanges, queues and bindings
+- [ ] Acknowledgements and delivery guarantees
+- [ ] Background workers
+- [ ] Retries and dead-letter queues
+- [ ] Idempotent task processing
+- [ ] Failure handling and recovery
 
-### Phase 4 — Deployment and Distributed Systems
+### Phase 4 — Operating Systems and Networking
 
-- [ ] Docker and Docker Compose
-- [ ] Nginx reverse proxy and load balancing
+- [ ] Linux processes and threads
+- [ ] Signals and system calls
+- [ ] File descriptors
+- [ ] Sockets and network communication
+- [ ] Inter-process communication
+- [ ] Memory management
+- [ ] Linux namespaces and cgroups
+- [ ] Practical system-level debugging
+
+### Phase 5 — Containerization and Deployment
+
+- [ ] Docker fundamentals
+- [ ] Dockerfiles and image building
+- [ ] Docker Compose
+- [ ] Multi-service deployment
+- [ ] Nginx reverse proxy
+- [ ] Load balancing
 - [ ] Multiple API instances
-- [ ] Prometheus and Grafana
-- [ ] Load testing and performance analysis
+- [ ] Service configuration and networking
+
+### Phase 6 — Distributed Systems and Observability
+
+- [ ] Prometheus metrics
+- [ ] Grafana dashboards
+- [ ] Structured logging
+- [ ] Distributed tracing fundamentals
+- [ ] Load testing with k6
+- [ ] Performance benchmarking
 - [ ] Replication and consistency
-- [ ] Distributed coordination and failure handling
-- [ ] System design and architecture documentation
+- [ ] Distributed coordination
+- [ ] CAP theorem and consensus fundamentals
+- [ ] Failure analysis and recovery
+- [ ] Final architecture integration
 
-The roadmap represents planned learning and implementation work. A checkbox is marked complete only when the corresponding work has been implemented or assessed.
+A roadmap checkbox is marked complete only when the corresponding work has been implemented, tested or assessed.
 
-## Engineering Principles
+## 13. Engineering Principles
 
-This project follows several principles:
+This project follows these engineering principles:
 
-1. **Understand before implementing:** study the purpose and trade-offs behind each component.
-2. **Test behavior, not assumptions:** verify HTTP responses, data persistence, and error handling.
-3. **Keep tests isolated:** avoid hidden dependencies between test cases.
-4. **Protect data:** separate test databases from development and production environments.
-5. **Measure before optimizing:** use benchmarks and query plans rather than guesswork.
-6. **Build incrementally:** introduce architectural complexity when the project needs it.
-7. **Document failures:** record bugs, their causes, and the reasoning behind fixes.
+1. **Understand before implementing:** Learn the purpose, trade-offs and limitations of each component.
+2. **Build incrementally:** Introduce complexity only when the system needs it.
+3. **Test behaviour:** Verify actual application behaviour instead of relying on assumptions.
+4. **Protect data:** Separate test, development and production environments.
+5. **Measure before optimising:** Use query plans, benchmarks and metrics.
+6. **Design for failure:** Consider unavailable dependencies, timeouts and partial failures.
+7. **Maintain clear boundaries:** Separate API schemas, database models and service responsibilities.
+8. **Document decisions:** Record important design choices, debugging results and lessons learned.
+9. **Avoid premature complexity:** Prefer a simple working implementation before introducing distributed architecture.
 
-## Development Status
+## 14. Project Scope and Disclaimer
 
-Taskflow is an actively evolving learning project. Its current foundation includes a FastAPI task API, PostgreSQL integration, CRUD operations, and automated tests.
+Taskflow is an actively evolving engineering and learning project.
 
-The next stage focuses on cumulative review and strengthening the existing foundations before introducing more advanced backend and distributed-systems concepts.
+Its purpose is to demonstrate practical understanding of backend development, databases, caching, networking, operating systems and distributed-system concepts.
+
+The project is not presented as a production-ready distributed platform. Planned components will be introduced, implemented and verified progressively.
+
+## 15. Author
+
+**Dhiraj Shrestha**  
+B.E. Computer Engineering  
+IOE, Pulchowk Campus
+
+**Focus areas:** Backend Engineering · Systems Programming · Distributed Systems
 
 ---
 
-**Author:** Dhiraj Shrestha  
-**Institution:** IOE, Pulchowk Campus  
-**Focus:** Backend Engineering, Systems Programming, and Distributed Systems
+<p align="center">
+  <sub>Built incrementally. Tested carefully. Designed to understand how real systems work.</sub>
+</p>
