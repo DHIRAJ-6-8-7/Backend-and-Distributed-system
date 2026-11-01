@@ -16,6 +16,7 @@ from app.database import (
     get_db,
 )
 from sqlalchemy.orm import Session
+from app.services.message_service import publish_task_message
 
 app = FastAPI(
     title="My FastAPI Application",
@@ -85,9 +86,23 @@ def get_task(task_id: int = Path(ge=1), db: Session = Depends(get_db)):
 
 
 # POST Method
-@app.post("/api/v1/tasks", response_model=ResponseTaskVerify, status_code=201)
+@app.post("/api/v1/tasks", response_model=ResponseTaskVerify, status_code=202)
 def create_task(body: CreatedTaskVerify, db: Session = Depends(get_db)):
     result = post_task(db, **body.model_dump())
+    try:
+        publish_task_message(result.id)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "SERVICE UNAVAILABLE",
+                    "message": "ask was created but could not be queued for processing",
+                    "status": 503,
+                }
+            },
+        ) from exc
     return result
 
 

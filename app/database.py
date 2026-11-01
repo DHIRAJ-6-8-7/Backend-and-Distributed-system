@@ -1,4 +1,4 @@
-from sqlalchemy import URL, create_engine, select, func
+from sqlalchemy import URL, create_engine, select, func, update
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import settings
 from app.models import Task
@@ -136,6 +136,19 @@ def delete_task_from_db(session: Session, task_id: int):
     session.delete(task)
     session.commit()
     return True
+
+#idempotency and concurrent access
+def claim_task(db: Session, task_id: int) -> bool:
+    statement = (
+        update(Task)
+        .where(Task.id == task_id, Task.status == "pending")
+        .values(status="processing")
+    )
+
+    result = db.execute(statement)
+    db.commit()
+
+    return result.rowcount == 1  # type: ignore
 
 
 # for post core implementation

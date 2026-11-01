@@ -20,3 +20,7 @@ class Task(Base):
     )
 
     age: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("18"))
+
+    status: Mapped[str]     = mapped_column(
+        String(20), nullable=False, server_default=text("pending")
+    )
