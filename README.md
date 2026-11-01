@@ -1,14 +1,13 @@
 # Taskflow — Backend & Distributed Systems
 
-<p align="center">
-  **A hands-on backend engineering project evolving into a distributed task-processing platform.**
-</p>
+**A hands-on backend engineering project evolving into a distributed task-processing platform.**
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi" alt="FastAPI">
   <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql" alt="PostgreSQL">
   <img src="https://img.shields.io/badge/Redis-Cache-DC382D?logo=redis" alt="Redis">
+  <img src="https://img.shields.io/badge/RabbitMQ-Message Broker-FF6600?logo=rabbitmq" alt="RabbitMQ">
   <img src="https://img.shields.io/badge/SQLAlchemy-ORM-D71F00" alt="SQLAlchemy">
   <img src="https://img.shields.io/badge/Alembic-Migrations-6BA81E" alt="Alembic">
 </p>
@@ -17,30 +16,30 @@
 
 ## 1. Project Overview
 
-**Taskflow** is a backend engineering project built to explore the principles, technologies and engineering practices behind modern backend and distributed systems.
+**Taskflow** is a backend engineering project built to explore the principles, technologies, and engineering practices behind modern backend and distributed systems.
 
-It begins as a PostgreSQL-backed task management API and progressively evolves toward a distributed task-processing platform.
+It began as a PostgreSQL-backed task management API and is progressively evolving into an asynchronous task-processing platform.
 
-The project is developed through practical implementation, testing, debugging, performance analysis and system design rather than relying exclusively on theoretical exercises.
+The project is developed through practical implementation, testing, debugging, failure analysis, and performance investigation rather than relying exclusively on theoretical exercises.
 
 ### Primary objectives
 
 - Build maintainable REST APIs using FastAPI.
-- Understand HTTP, networking and client-server communication.
+- Understand HTTP, networking, and client-server communication.
 - Design and interact with relational databases.
 - Implement database access using SQLAlchemy ORM.
 - Manage database schema changes using Alembic.
 - Improve application performance using Redis caching.
 - Introduce asynchronous processing using message queues.
-- Build reliable background workers.
-- Explore Linux, processes, networking and system-level behaviour.
+- Build background workers and understand message-delivery behaviour.
+- Explore Linux, processes, networking, and system-level behaviour.
 - Deploy and observe multi-service applications.
-- Understand distributed-system trade-offs, failures and consistency.
+- Understand distributed-system trade-offs, failures, and consistency.
 
 ## 2. Current Development Status
 
 <details>
-<summary><strong>Completed work — Days 1–11</strong></summary>
+<summary><strong>Completed work — Days 1–12</strong></summary>
 
 ### Backend and HTTP foundations
 
@@ -49,7 +48,7 @@ The project is developed through practical implementation, testing, debugging, p
 - REST API development using FastAPI.
 - Request validation and response schemas using Pydantic.
 - CRUD operations and HTTP status codes.
-- Filtering, sorting and pagination.
+- Filtering, sorting, and pagination.
 - Error handling and API testing.
 
 ### PostgreSQL and database engineering
@@ -73,87 +72,146 @@ The project is developed through practical implementation, testing, debugging, p
 ### Redis integration
 
 - Redis architecture and client-server communication.
-- Keys, expiration, TTL and data structures.
+- Keys, expiration, TTL, and data structures.
 - Redis CLI and persistence mechanisms.
 - Python integration using `redis-py`.
 - Cache-aside implementation.
 - GET-by-ID caching with a 300-second TTL.
-- Cache invalidation after PATCH, PUT and DELETE.
+- Cache invalidation after PATCH, PUT, and DELETE.
 - Redis failure handling and PostgreSQL fallback.
 - Redis outage and recovery verification.
 
+### RabbitMQ and asynchronous processing
+
+- RabbitMQ installation and service verification.
+- Python integration using Pika.
+- RabbitMQ connection and channel management.
+- Queue declaration and message publishing.
+- Durable queue configuration.
+- Persistent message properties.
+- Publisher confirmation and mandatory publishing.
+- JSON message payloads.
+- Background consumer and worker implementation.
+- Manual message acknowledgement.
+- Task status tracking in PostgreSQL.
+- Database-backed task claiming.
+- API integration with asynchronous message publishing.
+- Successful end-to-end task processing verification.
+
 </details>
 
-**Current milestone:** Redis fundamentals and Taskflow caching completed (Day 11).
+**Current milestone:** RabbitMQ integration and basic asynchronous task processing completed (Day 12).
 
-The project is currently entering the message-queue and asynchronous-processing stage.
+The project is now entering the operating-systems and concurrency stage.
 
-> Development status reflects work implemented and verified in the project. Planned architecture components are not presented as completed features.
+> Development status reflects work implemented and verified. Planned architecture components are not presented as completed features.
 
 ## 3. Architecture
 
 ### Current application architecture
 
+The current system combines synchronous API operations, PostgreSQL persistence, Redis caching, and RabbitMQ-based asynchronous processing.
+
 ```text
-                   Client
-                     |
-                     v
-               FastAPI Application
-                     |
-           +---------+---------+
-           |                   |
-           v                   v
-      Redis Cache         PostgreSQL
-      Cache-aside         Source of Truth
-           |                   |
-           +---------+---------+
-                     |
-                     v
-                API Response
+                         Client
+                           |
+                           v
+                    FastAPI Application
+                           |
+             +-------------+-------------+
+             |             |             |
+             v             v             v
+        PostgreSQL       Redis        RabbitMQ
+        Task Data        Cache        Task Queue
+             |                           |
+             |                           v
+             |                    Background Worker
+             |                           |
+             +---------------------------+
+                         |
+                         v
+                  Task Status Update
 ```
 
-The application uses PostgreSQL as the authoritative data store and Redis as a complementary caching layer.
+### Asynchronous task-processing flow
+
+When a client submits a task:
+
+1. FastAPI validates the request.
+2. The task is inserted into PostgreSQL.
+3. The API publishes a message containing the task ID to RabbitMQ.
+4. RabbitMQ delivers the message to a consumer.
+5. The worker retrieves and processes the task.
+6. The worker updates the task status in PostgreSQL.
+
+```text
+Client
+  |
+  | POST /api/v1/tasks
+  v
+FastAPI
+  |
+  | 1. Insert task
+  v
+PostgreSQL
+  |
+  | 2. Publish task_id
+  v
+RabbitMQ Queue
+  |
+  | 3. Deliver message
+  v
+Consumer / Worker
+  |
+  | 4. Process task
+  v
+PostgreSQL
+  |
+  | 5. Update status
+  v
+Completed
+```
 
 ### Target distributed architecture
 
 The long-term architecture is planned to evolve toward:
 
 ```text
-                     Clients
-                        |
-                        v
-                  Nginx / Proxy
-                        |
-              +---------+---------+
-              |         |         |
-              v         v         v
-           FastAPI   FastAPI   FastAPI
-           Instance Instance Instance
-              |         |         |
-              +---------+---------+
-                        |
-          +-------------+-------------+
-          |             |             |
-          v             v             v
-       Redis        PostgreSQL     RabbitMQ
-       Cache        Persistent     Message
-                    Database       Broker
-                                      |
-                                +-----+-----+
-                                |           |
-                                v           v
-                             Worker 1    Worker 2
-                                |           |
-                                +-----+-----+
-                                      |
-                                      v
-                              Task Processing
-                                      |
-                                      v
-                               Results / Status
+                         Clients
+                            |
+                            v
+                       Nginx / Proxy
+                            |
+                 +----------+----------+
+                 |          |          |
+                 v          v          v
+              FastAPI    FastAPI    FastAPI
+              Instance   Instance   Instance
+                 |          |          |
+                 +----------+----------+
+                            |
+              +-------------+-------------+
+              |             |             |
+              v             v             v
+            Redis       PostgreSQL     RabbitMQ
+            Cache       Persistent     Message
+                        Database       Broker
+                                           |
+                                      +----+----+
+                                      |         |
+                                      v         v
+                                   Worker 1  Worker 2
+                                      |         |
+                                      +----+----+
+                                           |
+                                           v
+                                    Task Processing
+                                           |
+                                           v
+                                     Results / Status
 
-                  Observability:
-                 Prometheus + Grafana
+                         Observability:
+                        Prometheus + Grafana
 ```
 
 This is the target architecture, not a claim that every component is already implemented.
@@ -170,9 +228,11 @@ This is the target architecture, not a claim that every component is already imp
 | Migrations | Alembic | Database schema versioning |
 | Cache | Redis | In-memory caching |
 | Redis client | redis-py | Python–Redis communication |
+| Message broker | RabbitMQ | Asynchronous message delivery |
+| RabbitMQ client | Pika | Python–RabbitMQ communication |
 | Testing | pytest | Automated testing |
 | API testing | FastAPI TestClient, curl | Endpoint verification |
-| Server | Uvicorn | ASGI application server |
+| ASGI server | Uvicorn | Application server |
 | Environment | Linux / WSL | Development environment |
 | Version control | Git / GitHub | Source control |
 
@@ -180,7 +240,6 @@ This is the target architecture, not a claim that every component is already imp
 
 | Technology | Planned purpose |
 |---|---|
-| RabbitMQ | Message broker and asynchronous processing |
 | Docker | Application containerization |
 | Docker Compose | Multi-service development environment |
 | Nginx | Reverse proxy and load balancing |
@@ -199,6 +258,7 @@ taskflow/
 │   ├── config.py
 │   ├── database.py
 │   ├── redis_client.py
+│   ├── rabbitmq_client.py
 │   │
 │   ├── models/
 │   │   ├── __init__.py
@@ -210,7 +270,9 @@ taskflow/
 │   │
 │   └── services/
 │       ├── __init__.py
-│       └── cache_service.py
+│       ├── cache_service.py
+│       ├── message_service.py
+│       └── task_service.py
 │
 ├── alembic/
 │   ├── versions/
@@ -223,14 +285,18 @@ taskflow/
 │   └── test_tasks.py
 │
 ├── alembic.ini
+├── consumer.py
+├── producer.py
 ├── http_server.py
+├── test_claim_task.py
+├── test_rabbitmq_connection.py
 ├── requirements.txt
 ├── .env                 # Local configuration; not committed
 ├── .gitignore
 └── README.md
 ```
 
-The structure may evolve as the application grows. For example, routers and workers will receive more dedicated modules as their responsibilities expand.
+The structure may evolve as the application grows. Dedicated worker and router modules may be introduced as their responsibilities expand.
 
 ## 6. Getting Started
 
@@ -240,7 +306,8 @@ The structure may evolve as the application grows. For example, routers and work
 - Git
 - PostgreSQL
 - Redis
-- Linux, WSL or another compatible development environment
+- RabbitMQ
+- Linux, WSL, or another compatible development environment
 
 ### 6.1 Clone the repository
 
@@ -280,9 +347,11 @@ DB_PASSWORD=your_database_password
 DB_NAME=taskflow
 
 REDIS_URL=redis://localhost:6379/0
+
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/%2F
 ```
 
-Use your own local credentials.
+Use your own local credentials. The RabbitMQ URL above is an example for a local development setup.
 
 **Security requirements:**
 
@@ -290,17 +359,19 @@ Use your own local credentials.
 - Never publish database credentials or secrets.
 - Ensure `.env` is listed in `.gitignore`.
 - Use a separate database for automated tests.
-- Do not expose Redis or PostgreSQL publicly without appropriate security configuration.
+- Do not expose Redis, PostgreSQL, or RabbitMQ publicly without appropriate security configuration.
+- Change default credentials when configuring services beyond local development.
 
 ### 6.5 Start the services
 
-Start PostgreSQL and Redis using your local service manager.
+Start PostgreSQL, Redis, and RabbitMQ using your local service manager.
 
 For Ubuntu / WSL:
 
 ```bash
 sudo service postgresql start
 sudo service redis-server start
+sudo service rabbitmq-server start
 ```
 
 Verify Redis:
@@ -314,6 +385,14 @@ Expected response:
 ```text
 PONG
 ```
+
+Verify RabbitMQ:
+
+```bash
+sudo rabbitmq-diagnostics ping
+```
+
+A successful response confirms that the RabbitMQ node is running and responding to the diagnostic ping.
 
 Verify PostgreSQL connectivity using your configured database credentials.
 
@@ -351,7 +430,7 @@ Review generated migration files before applying them.
 
 ## 7. Running the Application
 
-Activate the virtual environment and run:
+Activate the virtual environment and start the API:
 
 ```bash
 uvicorn app.main:app --reload
@@ -367,6 +446,20 @@ Default local URLs:
 
 The application requires valid database configuration. Redis is used for caching, with the current GET cache path designed to fall back to PostgreSQL when Redis is unavailable.
 
+RabbitMQ must be available when creating tasks through the current asynchronous publishing flow.
+
+### Running the worker
+
+Open another terminal, activate the same virtual environment, and run:
+
+```bash
+python consumer.py
+```
+
+The consumer listens for messages from the task queue and processes received tasks.
+
+Keep the worker running while testing asynchronous task creation.
+
 ## 8. API Reference
 
 The task API is organized under:
@@ -379,22 +472,30 @@ The task API is organized under:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/v1/tasks` | Create a task |
+| POST | `/api/v1/tasks` | Create and queue a task |
 | GET | `/api/v1/tasks` | Retrieve tasks |
 | GET | `/api/v1/tasks/{task_id}` | Retrieve a task by ID |
 | PATCH | `/api/v1/tasks/{task_id}` | Partially update a task |
 | PUT | `/api/v1/tasks/{task_id}` | Replace a task |
 | DELETE | `/api/v1/tasks/{task_id}` | Delete a task |
 
-The list endpoint supports the implemented filtering, sorting and pagination options.
+The list endpoint supports the implemented filtering, sorting, and pagination options.
 
 Request validation and response serialization are handled through Pydantic models.
 
-For exact request fields, query parameters and response schemas, use the interactive Swagger documentation at `/docs`.
+For exact request fields, query parameters, and response schemas, use the interactive Swagger documentation at `/docs`.
 
-### Example requests
+### Asynchronous task creation
 
-Create a task:
+The POST endpoint currently creates a database record and publishes a message to RabbitMQ.
+
+A successful request returns:
+
+```http
+202 Accepted
+```
+
+Example request:
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/api/v1/tasks" \
@@ -405,6 +506,23 @@ curl -X POST "http://127.0.0.1:8000/api/v1/tasks" \
     "age": 21
   }'
 ```
+
+Example response:
+
+```json
+{
+  "id": 13,
+  "title": "Learn distributed systems",
+  "completed": false,
+  "age": 21
+}
+```
+
+The task ID is used in the RabbitMQ message so that the worker can retrieve and process the corresponding task.
+
+**Important reliability limitation:** The current implementation commits the task to PostgreSQL before publishing the RabbitMQ message. If publishing fails after the database commit, the task can remain in PostgreSQL without being queued. The Transactional Outbox Pattern is a planned improvement, not yet implemented.
+
+### Other example requests
 
 Retrieve a task:
 
@@ -446,6 +564,8 @@ Key concepts explored:
 - Connection pooling.
 - Database transactions.
 - Schema migration workflows.
+- Task status persistence.
+- Database-backed task claiming.
 
 ### SQLAlchemy
 
@@ -525,9 +645,72 @@ The cache-read path handles Redis errors and falls back to PostgreSQL.
 
 This keeps basic task retrieval available when Redis is temporarily unavailable, provided PostgreSQL remains healthy.
 
-The current implementation is an educational cache-aside foundation. More advanced consistency, observability and coordination mechanisms will be developed later.
+The current implementation is an educational cache-aside foundation. More advanced consistency, observability, and coordination mechanisms will be developed later.
 
-## 11. Automated Testing
+## 11. RabbitMQ and Asynchronous Processing
+
+RabbitMQ is integrated as the message broker for asynchronous task processing.
+
+### Current message flow
+
+```text
+FastAPI
+   |
+   | Publish JSON message
+   v
+RabbitMQ
+   |
+   | Deliver message
+   v
+Consumer
+   |
+   | Retrieve and claim task
+   v
+PostgreSQL
+   |
+   | Process task and update status
+   v
+Completed
+```
+
+### Current implementation
+
+- RabbitMQ connection and channel creation using Pika.
+- Queue declaration using a durable queue.
+- JSON message containing the task ID.
+- Persistent message delivery properties.
+- Publisher confirmation.
+- Mandatory publishing.
+- Consumer-side manual acknowledgement.
+- Database-backed task claiming.
+- Task status updates during processing.
+- Separate worker process from the FastAPI application.
+
+### Message acknowledgement
+
+The consumer uses acknowledgements to tell RabbitMQ whether a message has been processed.
+
+Manual acknowledgement helps prevent a message from being considered successfully processed before the consumer finishes its work.
+
+If a consumer exits before acknowledging a delivered message, RabbitMQ can requeue the unacknowledged message.
+
+### Current reliability limitations
+
+The current implementation is a learning foundation, not a complete production-grade message-processing system.
+
+The following improvements remain planned:
+
+- Retry policies and backoff.
+- Dead-letter exchanges and dead-letter queues.
+- Recovery of tasks stuck in a processing state.
+- More comprehensive idempotency and duplicate-delivery handling.
+- Transactional Outbox Pattern to address the database/message dual-write problem.
+- Structured logging and message-processing metrics.
+- More comprehensive broker and worker failure testing.
+
+A publisher confirmation indicates that RabbitMQ accepted responsibility for the published message. It does not make the PostgreSQL transaction and message publication atomic.
+
+## 12. Automated Testing
 
 The project uses pytest and FastAPI `TestClient`.
 
@@ -555,42 +738,62 @@ Run an individual test:
 python -m pytest -v tests/test_tasks.py::test_create_task
 ```
 
+### RabbitMQ verification
+
+Run the connection test:
+
+```bash
+python test_rabbitmq_connection.py
+```
+
+Run the task-claim test:
+
+```bash
+python test_claim_task.py
+```
+
 ### Testing principles
 
 - Verify HTTP status codes and response bodies.
 - Verify database persistence.
 - Test invalid and missing input.
 - Test nonexistent resources.
-- Verify filtering, sorting and pagination.
+- Verify filtering, sorting, and pagination.
 - Verify partial and full updates.
 - Verify deletion behaviour.
+- Test message publishing and consumption.
+- Verify task status transitions.
+- Test duplicate task-claim behaviour.
 - Keep test data isolated.
 - Use a dedicated test database.
 - Avoid destructive test operations against development or production databases.
 
 ### Redis verification
 
-Check Redis:
-
 ```bash
 redis-cli ping
-```
-
-Inspect a task cache entry:
-
-```bash
 redis-cli GET task:1
-```
-
-Inspect its expiry:
-
-```bash
 redis-cli TTL task:1
 ```
 
 Test Redis outage behaviour in a controlled local environment by temporarily stopping Redis and verifying that the GET endpoint can retrieve data from PostgreSQL.
 
-## 12. Development Roadmap
+### RabbitMQ verification
+
+```bash
+sudo rabbitmq-diagnostics ping
+```
+
+Test asynchronous processing by:
+
+1. Starting PostgreSQL, Redis, and RabbitMQ.
+2. Starting the FastAPI application.
+3. Starting the consumer in another terminal.
+4. Creating a task through Swagger or curl.
+5. Checking the worker output.
+6. Verifying the updated task status in PostgreSQL.
+
+## 13. Development Roadmap
 
 The project follows a progressive learning and implementation roadmap.
 
@@ -602,7 +805,7 @@ The project follows a progressive learning and implementation roadmap.
 - [x] Pydantic validation
 - [x] CRUD operations
 - [x] PostgreSQL integration
-- [x] Filtering, sorting and pagination
+- [x] Filtering, sorting, and pagination
 - [x] Automated API testing
 
 ### Phase 2 — Database Engineering and Caching
@@ -623,14 +826,21 @@ The project follows a progressive learning and implementation roadmap.
 
 ### Phase 3 — Asynchronous Processing
 
-- [ ] RabbitMQ architecture
-- [ ] Message producers and consumers
-- [ ] Exchanges, queues and bindings
-- [ ] Acknowledgements and delivery guarantees
-- [ ] Background workers
-- [ ] Retries and dead-letter queues
-- [ ] Idempotent task processing
-- [ ] Failure handling and recovery
+- [x] RabbitMQ architecture fundamentals
+- [x] Message producers and consumers
+- [x] Queue declaration and publishing
+- [x] Publisher confirmations
+- [x] Persistent messages and durable queues
+- [x] Manual acknowledgements
+- [x] Background worker integration
+- [x] Basic task claiming and status updates
+- [x] End-to-end asynchronous task processing
+- [ ] Retry policies and backoff
+- [ ] Dead-letter queues
+- [ ] Stuck-task recovery
+- [ ] Stronger idempotent processing
+- [ ] Transactional Outbox Pattern
+- [ ] Comprehensive failure handling and recovery
 
 ### Phase 4 — Operating Systems and Networking
 
@@ -668,31 +878,31 @@ The project follows a progressive learning and implementation roadmap.
 - [ ] Failure analysis and recovery
 - [ ] Final architecture integration
 
-A roadmap checkbox is marked complete only when the corresponding work has been implemented, tested or assessed.
+A roadmap checkbox is marked complete only when the corresponding work has been implemented, tested, or assessed.
 
-## 13. Engineering Principles
+## 14. Engineering Principles
 
 This project follows these engineering principles:
 
-1. **Understand before implementing:** Learn the purpose, trade-offs and limitations of each component.
+1. **Understand before implementing:** Learn the purpose, trade-offs, and limitations of each component.
 2. **Build incrementally:** Introduce complexity only when the system needs it.
 3. **Test behaviour:** Verify actual application behaviour instead of relying on assumptions.
-4. **Protect data:** Separate test, development and production environments.
-5. **Measure before optimising:** Use query plans, benchmarks and metrics.
-6. **Design for failure:** Consider unavailable dependencies, timeouts and partial failures.
-7. **Maintain clear boundaries:** Separate API schemas, database models and service responsibilities.
-8. **Document decisions:** Record important design choices, debugging results and lessons learned.
+4. **Protect data:** Separate test, development, and production environments.
+5. **Measure before optimising:** Use query plans, benchmarks, and metrics.
+6. **Design for failure:** Consider unavailable dependencies, timeouts, and partial failures.
+7. **Maintain clear boundaries:** Separate API schemas, database models, and service responsibilities.
+8. **Document decisions:** Record important design choices, debugging results, and lessons learned.
 9. **Avoid premature complexity:** Prefer a simple working implementation before introducing distributed architecture.
 
-## 14. Project Scope and Disclaimer
+## 15. Project Scope and Disclaimer
 
 Taskflow is an actively evolving engineering and learning project.
 
-Its purpose is to demonstrate practical understanding of backend development, databases, caching, networking, operating systems and distributed-system concepts.
+Its purpose is to demonstrate practical understanding of backend development, databases, caching, message queues, networking, operating systems, and distributed-system concepts.
 
-The project is not presented as a production-ready distributed platform. Planned components will be introduced, implemented and verified progressively.
+The project is not presented as a production-ready distributed platform. Planned components will be introduced, implemented, and verified progressively.
 
-## 15. Author
+## 16. Author
 
 **Dhiraj Shrestha**  
 B.E. Computer Engineering  
