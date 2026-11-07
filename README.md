@@ -39,7 +39,7 @@ The project is developed through practical implementation, testing, debugging, f
 ## 2. Current Development Status
 
 <details>
-<summary><strong>Completed work — Days 1–12</strong></summary>
+<summary><strong>Completed work — Days 1–14 (with Day 13 practical verification still pending)</strong></summary>
 
 ### Backend and HTTP foundations
 
@@ -98,11 +98,37 @@ The project is developed through practical implementation, testing, debugging, f
 - API integration with asynchronous message publishing.
 - Successful end-to-end task processing verification.
 
+### Linux systems and concurrency — Days 13–14
+
+**Day 13 — Processes, Threads and Concurrency**
+- Program versus process.
+- Process memory layout and virtual memory fundamentals.
+- PIDs, PPIDs, process states, and process inspection.
+- `fork()`, copy-on-write, and the `exec()` family.
+- `wait()` / `waitpid()` and zombie processes.
+- Threads, shared process resources, and POSIX pthreads.
+- Concurrency versus parallelism.
+- Race conditions, data races, and context switching.
+- Theory covered; practical verification/checkpoint remains pending.
+
+**Day 14 — IPC, Synchronization and Signals**
+- IPC fundamentals and communication between processes.
+- Anonymous pipes and file-descriptor handling.
+- Named pipes (FIFOs).
+- POSIX shared-memory concepts and APIs.
+- POSIX message-queue concepts and APIs.
+- Critical sections and race conditions.
+- Mutexes and POSIX semaphore fundamentals.
+- Deadlocks and the four Coffman conditions.
+- Linux signals, including `SIGINT`, `SIGTERM`, `SIGKILL`, `SIGSTOP`, and `SIGCONT`.
+- Graceful worker-shutdown concepts and backend applications.
+- Day 14 theory and practical assessment completed.
+
 </details>
 
-**Current milestone:** RabbitMQ integration and basic asynchronous task processing completed (Day 12).
+**Current milestone:** RabbitMQ integration and basic asynchronous task processing completed (Day 12). Linux systems fundamentals have progressed through Day 14. Day 13 practical verification remains outstanding; Day 14 is complete.
 
-The project is now entering the operating-systems and concurrency stage.
+The project is currently working through the operating-systems and concurrency stage.
 
 > Development status reflects work implemented and verified. Planned architecture components are not presented as completed features.
 
@@ -844,11 +870,19 @@ The project follows a progressive learning and implementation roadmap.
 
 ### Phase 4 — Operating Systems and Networking
 
-- [ ] Linux processes and threads
-- [ ] Signals and system calls
-- [ ] File descriptors
+- [x] Day 13 theory: Linux processes and threads
+- [x] Day 13 theory: process creation, `fork()`, `exec()`, and `wait()`
+- [x] Day 13 theory: concurrency, race conditions, and context switching
+- [ ] Day 13 practical verification and checkpoint
+- [x] Day 14: IPC fundamentals
+- [x] Day 14: anonymous pipes and named pipes (FIFOs)
+- [x] Day 14: shared-memory and POSIX message-queue concepts
+- [x] Day 14: critical sections, mutexes, and semaphores
+- [x] Day 14: deadlocks and Coffman conditions
+- [x] Day 14: Linux signals and graceful-shutdown concepts
+- [x] Day 14 practical assessment
+- [ ] File descriptors — deeper practical study
 - [ ] Sockets and network communication
-- [ ] Inter-process communication
 - [ ] Memory management
 - [ ] Linux namespaces and cgroups
 - [ ] Practical system-level debugging
@@ -878,7 +912,7 @@ The project follows a progressive learning and implementation roadmap.
 - [ ] Failure analysis and recovery
 - [ ] Final architecture integration
 
-A roadmap checkbox is marked complete only when the corresponding work has been implemented, tested, or assessed.
+A roadmap checkbox is marked complete only when the corresponding work has been covered and its required practical work or assessment has been verified. Day 13 theory is complete, but its practical verification remains pending. Day 14 theory and practical assessment are complete.
 
 ## 14. Engineering Principles
 
